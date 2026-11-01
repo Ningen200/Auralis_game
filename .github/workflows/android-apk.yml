@@ -1,0 +1,78 @@
+name: Build Auralis Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/android-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Create Android WebView app
+        run: |
+          npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          mkdir -p www
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.auralis.game",
+            "appName": "Auralis",
+            "webDir": "www",
+            "server": {
+              "url": "https://auralis-character-redesign.vercel.app/",
+              "cleartext": false,
+              "allowNavigation": ["auralis-character-redesign.vercel.app"]
+            }
+          }
+          EOF
+          cat > www/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+              <meta name="theme-color" content="#071018">
+              <title>Auralis</title>
+              <style>
+                html,body{margin:0;width:100%;height:100%;background:#071018}
+                iframe{display:none}
+              </style>
+            </head>
+            <body>
+              <script>location.replace("https://auralis-character-redesign.vercel.app/");</script>
+            </body>
+          </html>
+          EOF
+          npx cap add android
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Auralis-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30

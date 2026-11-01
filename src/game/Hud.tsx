@@ -217,10 +217,10 @@ export function Hud({
           )}
 
           <div className={playing ? "mobile-action-grid relative z-20 ms-auto grid grid-cols-2 gap-2" : "hidden"}>
-          <Ability icon={Footprints} label="تهرّب" hint="Shift" ready={snap.dodgeCd <= 0} cd={snap.dodgeCd} max={DODGE_MAX} onPress={() => edge("dodge")} />
-          <Ability icon={Shield} label="صدّ" hint="L" ready={snap.parryCd <= 0} cd={snap.parryCd} max={1.25} onPress={() => edge("parry")} />
-          <Ability icon={Zap} label="مهارة" hint="E" ready={snap.skillCd <= 0} cd={snap.skillCd} max={SKILL_MAX} onPress={() => edge("skill")} />
-          <Ability icon={Sword} label="ضرب" hint="J" ready onPress={() => edge("attack")} />
+          <Ability label="تهرّب" hint="Shift" ready={snap.dodgeCd <= 0} cd={snap.dodgeCd} max={DODGE_MAX} onPress={() => edge("dodge")} />
+          <Ability label="صدّ" hint="L" ready={snap.parryCd <= 0} cd={snap.parryCd} max={1.25} onPress={() => edge("parry")} />
+          <Ability label="مهارة" hint="E" ready={snap.skillCd <= 0} cd={snap.skillCd} max={SKILL_MAX} onPress={() => edge("skill")} />
+          <Ability label="ضرب" hint="J" ready onPress={() => edge("attack")} />
           <Ability
             label="تحرير"
             hint="R"

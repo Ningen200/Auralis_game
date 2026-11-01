@@ -206,6 +206,24 @@ const WAVES: { kind: Kind; n: number }[][] = [
 
 export const WAVE_TOTAL = WAVES.length;
 
+export type CharacterId = 0 | 1 | 2;
+
+export const CHARACTERS = [
+  { id: 0 as const, name: "سيرا", title: "نصل الصدى", role: "متوازنة", color: "#1ad6c0", maxHp: 120, speed: 1, attack: 1, dodge: 1, skillCooldown: 5.6, description: "مقاتلة متوازنة تعتمد على صدّ الهجمات وضربات النصل الواسعة." },
+  { id: 1 as const, name: "كايل", title: "حارس الشق", role: "قوة ودفاع", color: "#ff875c", maxHp: 150, speed: 0.88, attack: 1.38, dodge: 0.82, skillCooldown: 7.2, description: "مقاتل ثقيل؛ أبطأ حركةً لكنه يوجه ضربات أقوى ويصمد أمام الضرر." },
+  { id: 2 as const, name: "ليورا", title: "ناسجة الطاقة", role: "سرعة وطاقة", color: "#b58cff", maxHp: 105, speed: 1.18, attack: 0.82, dodge: 1.3, skillCooldown: 4.2, description: "سريعة ورشيقة، تطلق شظايا طاقة من مسافة وتستعيد موقعها بسرعة." },
+] as const;
+
+export function selectCharacter(sim: Sim, character: CharacterId) {
+  const p = sim.player;
+  const ratio = p.maxHp > 0 ? p.hp / p.maxHp : 1;
+  p.character = character;
+  p.maxHp = CHARACTERS[character].maxHp;
+  p.hp = Math.max(1, Math.min(p.maxHp, Math.round(p.maxHp * ratio)));
+  sim.banner = CHARACTERS[character].name + " · " + CHARACTERS[character].title;
+  sim.bannerT = 1.8;
+}
+
 const SWINGS = [
   { dur: 0.32, from: 0.22, to: 0.08, range: 2.35, arc: 0.55, dmg: 14, kb: 0.28, stagger: 0, radius: 1.55 },
   { dur: 0.34, from: 0.24, to: 0.08, range: 2.5, arc: 0.42, dmg: 18, kb: 0.34, stagger: 0, radius: 1.7 },
@@ -837,8 +855,9 @@ function startSwing(sim: Sim) {
   const p = sim.player;
   const idx = p.comboWindow > 0 ? p.combo : 0;
   const sw = SWINGS[idx];
-  p.attackT = sw.dur;
-  p.swingDur = sw.dur;
+  const duration = sw.dur / CHARACTERS[p.character].attack;
+  p.attackT = duration;
+  p.swingDur = duration;
   p.swingIndex = idx;
   p.combo = (idx + 1) % SWINGS.length;
   p.comboWindow = 0;
@@ -873,8 +892,9 @@ function stepPlayer(sim: Sim, dt: number, first: boolean) {
   }
   if (first && sim.edge.dodge && p.dodgeCd <= 0 && p.dodgeT <= 0 && p.hp > 0) {
     const axes = moveAxes(sim);
-    p.dodgeT = 0.28;
-    p.dodgeCd = 0.82;
+    const dodgeFactor = CHARACTERS[p.character].dodge;
+    p.dodgeT = 0.28 * dodgeFactor;
+    p.dodgeCd = 0.82 * dodgeFactor;
     p.dodgeYaw = axes.moving ? Math.atan2(-axes.ix, -axes.iz) : p.yaw;
     p.yaw = p.dodgeYaw;
     p.invuln = Math.max(p.invuln, 0.28);
@@ -925,7 +945,7 @@ function stepPlayer(sim: Sim, dt: number, first: boolean) {
     if (axes.moving && p.hp > 0) {
       const slow = p.attackT > 0.05 ? 0.42 : 1;
       const ultSlow = p.ultT > 0 ? 0.3 : 1;
-      desired = RUN_SPEED * slow * ultSlow;
+      desired = RUN_SPEED * CHARACTERS[p.character].speed * slow * ultSlow;
       const face = Math.atan2(-axes.ix, -axes.iz);
       p.yaw = dampAngle(p.yaw, face, 16, dt);
       p.x += axes.ix * desired * dt;
@@ -962,7 +982,8 @@ function stepPlayer(sim: Sim, dt: number, first: boolean) {
         if (e.state === "dead" || e.hitSwing === p.swingId) continue;
         if (coneHit(p.x, p.z, p.yaw, e.x, e.z, sw.range + e.radius, sw.arc)) {
           e.hitSwing = p.swingId;
-          hurtEnemy(sim, e, sw.dmg, sw.kb, sw.stagger);
+          const hero = CHARACTERS[p.character];
+          hurtEnemy(sim, e, Math.round(sw.dmg * hero.attack), sw.kb * (p.character === 1 ? 1.35 : 1), sw.stagger * (p.character === 1 ? 1.4 : 1));
         }
       }
     }

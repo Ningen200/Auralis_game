@@ -104,6 +104,7 @@ export function GameApp() {
       if (e.code === "KeyE") sim.edge.skill = true;
       if (e.code === "KeyQ" || e.code === "Tab") { e.preventDefault(); cycleTarget(sim); setSnap(readSnap(sim)); }
       if (e.code === "KeyR") sim.edge.ult = true;
+      if (e.code === "KeyL") sim.edge.parry = true;
     };
     const up = (e: KeyboardEvent) => {
       sim.keys.delete(e.code);

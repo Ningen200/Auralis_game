@@ -146,3 +146,19 @@
   .mobile-action-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .mobile-action-grid button { width: clamp(46px, 9vh, 58px); height: clamp(46px, 9vh, 58px); }
 }
+
+
+/* Auralis identity and cinematic title screen */
+.auralis-main-menu {
+  background:
+    linear-gradient(90deg, rgba(3,10,16,.96) 0%, rgba(4,13,20,.84) 43%, rgba(4,13,20,.22) 100%),
+    radial-gradient(ellipse at 72% 48%, rgba(26,214,192,.18), transparent 48%),
+    linear-gradient(0deg, rgba(3,9,14,.62), transparent 60%);
+  overflow-y: auto;
+}
+.auralis-menu-card { background: linear-gradient(145deg, rgba(10,25,33,.78), rgba(7,15,22,.46)); border: 1px solid rgba(135,236,224,.22); box-shadow: 0 24px 90px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.06); backdrop-filter: blur(14px); }
+.auralis-mark { width: 58px; height: 58px; display:grid; place-items:center; margin-bottom:18px; border:1px solid rgba(91,238,218,.55); border-radius:18px 18px 18px 4px; color:#b7fff5; font-size:30px; background:linear-gradient(145deg,rgba(26,214,192,.28),rgba(7,16,24,.9)); box-shadow:0 0 34px rgba(26,214,192,.18); }
+.auralis-primary { color:#041217; background:linear-gradient(110deg,#8af8e9,#1ad6c0 65%,#7debdc); box-shadow:0 8px 30px rgba(26,214,192,.2); }
+.auralis-secondary { color:#e7f4f1; border:1px solid rgba(231,244,241,.18); background:rgba(255,255,255,.045); }
+.auralis-primary:active,.auralis-secondary:active { transform:scale(.985); }
+@media (max-width:640px) { .auralis-menu-card { max-width: min(100%, 430px); padding:18px; } .auralis-main-menu { align-items:center; } }

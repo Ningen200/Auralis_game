@@ -1,7 +1,7 @@
 import { useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { Pause, Play, Volume2, VolumeX, Sword, Shield, Zap, Footprints, Sparkles, Crosshair, Settings, BookOpen, X } from "lucide-react";
 import type { AudioBus } from "@/game/audio";
-import { beginRun, cycleTarget, togglePause, WAVE_TOTAL, type Phase, type Sim } from "@/game/sim";
+import { beginRun, CHARACTERS, cycleTarget, selectCharacter, togglePause, WAVE_TOTAL, type CharacterId, type Phase, type Sim } from "@/game/sim";
 
 export interface HudSnap {
   phase: Phase;
@@ -254,7 +254,7 @@ export function Hud({
       </div>
 
       {snap.phase === "menu" && (
-        <Menu mainMenu optionsOpen={optionsOpen} onOptions={() => setOptionsOpen((v) => !v)} onStart={start} best={snap.best} title="أوراليس" kicker="صدى النصل · AURALIS" body="حين انكسر ضوء القمر، استيقظ الصدع في قلب الجزيرة. احمل نصل الصدى، واجتز الظلال لتعيد النبض إلى العالم." action="ابدأ اللعب · START" />
+        <Menu mainMenu optionsOpen={optionsOpen} onOptions={() => setOptionsOpen((v) => !v)} onStart={start} best={snap.best} title="أوراليس" kicker="صدى النصل · AURALIS" body="حين انكسر ضوء القمر، استيقظ الصدع في قلب الجزيرة. اختر بطلك، ثم ابدأ رحلتك." action="ابدأ اللعب · START" selectedCharacter={snap.character} onSelectCharacter={(id) => { const live = simRef.current; if (live) { selectCharacter(live, id); onChange(); } }} />
       )}
       {snap.phase === "pause" && sim && (
         <Menu
@@ -311,10 +311,10 @@ function Ability({
 }
 
 function Menu({
-  onStart, best, title, kicker, body, action, mainMenu = false, optionsOpen = false, onOptions,
+  onStart, best, title, kicker, body, action, mainMenu = false, optionsOpen = false, onOptions, selectedCharacter, onSelectCharacter,
 }: {
   onStart: () => void; best: number; title: string; kicker: string; body: string; action: string;
-  mainMenu?: boolean; optionsOpen?: boolean; onOptions?: () => void;
+  mainMenu?: boolean; optionsOpen?: boolean; onOptions?: () => void; selectedCharacter?: CharacterId; onSelectCharacter?: (id: CharacterId) => void;
 }) {
   return (
     <div className={mainMenu ? "auralis-main-menu pointer-events-auto absolute inset-0 z-30 flex items-center p-4 md:p-10" : "pointer-events-none absolute inset-0 flex items-end p-3 md:items-center md:p-8"}>
@@ -323,6 +323,22 @@ function Menu({
         <p className="font-display text-sm tracking-[.22em] text-tide">{kicker}</p>
         <h1 className="mt-2 font-display text-5xl font-semibold tracking-wide text-foam md:text-7xl">{title}</h1>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-mist md:text-base">{body}</p>
+        {mainMenu && selectedCharacter !== undefined && onSelectCharacter && (
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {CHARACTERS.map((hero) => (
+              <button key={hero.id} type="button" data-ui onClick={() => onSelectCharacter(hero.id)}
+                className="rounded-xl border bg-black/20 p-2 text-left"
+                style={{ borderColor: selectedCharacter === hero.id ? hero.color : "rgba(255,255,255,.12)", background: selectedCharacter === hero.id ? hero.color + "18" : "rgba(0,0,0,.2)" }}>
+                <span className="mb-2 block h-1 rounded-full" style={{ background: hero.color }} />
+                <span className="block font-display text-sm text-foam">{hero.name}</span>
+                <span className="mt-1 block text-[10px] text-mist">{hero.role}</span>
+                <span className="mt-2 block text-[10px] leading-relaxed text-mist">{hero.title}</span>
+                {selectedCharacter === hero.id && <span className="mt-2 block text-[10px]" style={{ color: hero.color }}>✓ مختار</span>}
+              </button>
+            ))}
+            <p className="col-span-3 text-xs leading-relaxed text-mist">{CHARACTERS[selectedCharacter].description}</p>
+          </div>
+        )}
         <div className="mt-6 grid gap-2">
           <button type="button" data-ui className="auralis-primary press flex h-14 w-full items-center justify-center gap-3 rounded-xl font-display text-base font-bold" onClick={onStart}><Play size={19} fill="currentColor"/> {action}</button>
           {mainMenu && <>

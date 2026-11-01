@@ -1,0 +1,96 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap");
+
+@theme {
+  --color-ink: #071018;
+  --color-ink-2: #101a22;
+  --color-panel: #16242c;
+  --color-foam: #e7f4f1;
+  --color-mist: #93a8a6;
+  --color-tide: #1ad6c0;
+  --color-rift: #ff5d73;
+  --color-line: #24363e;
+  --font-display: "Outfit", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  --font-sans: "IBM Plex Sans Arabic", "Outfit", "Segoe UI", sans-serif;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+:root {
+  --motion-micro: 80ms;
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-slow: 400ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-y-medium: 12px;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html,
+  body {
+    height: 100%;
+    background: var(--color-ink);
+    color: var(--color-foam);
+  }
+  body {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--font-sans);
+  }
+}
+
+.press {
+  transition: transform var(--motion-micro) var(--ease-smooth-out);
+}
+.press:active {
+  transform: scale(0.98);
+}
+.rise {
+  animation: rise var(--motion-fast) var(--ease-smooth-out) both;
+}
+.rise-delay {
+  animation-delay: 80ms;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-y-medium));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.floater {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 var(--color-ink);
+  white-space: nowrap;
+}
+.hurt-veil {
+  background: radial-gradient(ellipse at center, transparent 42%, color-mix(in srgb, var(--color-rift) 70%, transparent) 100%);
+}
+.focus-veil {
+  background: radial-gradient(ellipse at center, transparent 30%, color-mix(in srgb, var(--color-tide) 28%, transparent) 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .rise-delay {
+    animation: none;
+  }
+  .press {
+    transition: none;
+  }
+}

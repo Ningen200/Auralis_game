@@ -165,8 +165,8 @@ export function GameApp() {
     >
       <Canvas
         className="h-full w-full"
-        shadows={typeof window === "undefined" || window.innerWidth >= 700}
-        dpr={typeof window !== "undefined" && window.innerWidth < 700 ? [0.75, 1.1] : [1, 1.5]}
+        shadows={typeof window === "undefined" || window.innerWidth >= 900}
+        dpr={typeof window !== "undefined" && window.innerWidth < 900 ? [0.8, 1.15] : [1, 1.5]}
         camera={{ fov: 42, near: 0.12, far: 220, position: [0, 5, 16] }}
         gl={{ antialias: true, powerPreference: "high-performance", stencil: false }}
         onCreated={({ gl }) => {

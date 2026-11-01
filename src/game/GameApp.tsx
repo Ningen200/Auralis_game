@@ -32,6 +32,8 @@ function sameSnap(a: HudSnap, b: HudSnap) {
     a.skillCd.toFixed(1) === b.skillCd.toFixed(1) &&
     a.dodgeCd.toFixed(1) === b.dodgeCd.toFixed(1) &&
     a.kills === b.kills &&
+    a.character === b.character &&
+    a.parryCd.toFixed(1) === b.parryCd.toFixed(1) &&
     a.targetName === b.targetName &&
     Math.ceil(a.targetHp) === Math.ceil(b.targetHp) &&
     Math.ceil(a.targetMaxHp) === Math.ceil(b.targetMaxHp)

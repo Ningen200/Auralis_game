@@ -126,6 +126,8 @@ export interface Sim {
     maxHp: number;
     energy: number;
     invuln: number;
+    parryT: number;
+    parryCd: number;
     dodgeT: number;
     dodgeCd: number;
     dodgeYaw: number;
@@ -150,7 +152,7 @@ export interface Sim {
   stickY: number;
   keys: Set<string>;
   injected: Set<string> | null;
-  edge: { attack: boolean; dodge: boolean; skill: boolean; ult: boolean };
+  edge: { attack: boolean; dodge: boolean; skill: boolean; ult: boolean; parry: boolean };
   enemies: Enemy[];
   shots: Shot[];
   particles: Particle[];
@@ -276,6 +278,8 @@ export function createSim(): Sim {
       maxHp: 120,
       energy: 25,
       invuln: 0,
+      parryT: 0,
+      parryCd: 0,
       dodgeT: 0,
       dodgeCd: 0,
       dodgeYaw: 0,
@@ -300,7 +304,7 @@ export function createSim(): Sim {
     stickY: 0,
     keys: new Set(),
     injected: null,
-    edge: { attack: false, dodge: false, skill: false, ult: false },
+    edge: { attack: false, dodge: false, skill: false, ult: false, parry: false },
     enemies: [],
     shots: Array.from({ length: MAX_SHOTS }, () => ({
       alive: false,
@@ -626,6 +630,26 @@ function ageJuice(sim: Sim, dt: number) {
 function hurtPlayer(sim: Sim, dmg: number, fromX: number, fromZ: number) {
   const p = sim.player;
   if (p.hp <= 0 || sim.phase !== "play") return;
+  if (p.parryT > 0) {
+    const attacker = sim.enemies
+      .filter((enemy) => enemy.state !== "dead" && Math.hypot(enemy.x - p.x, enemy.z - p.z) < 3.4)
+      .sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+    if (attacker) {
+      attacker.state = "stagger";
+      attacker.timer = 0.95;
+      attacker.cool = Math.max(attacker.cool, 1.1);
+      p.parryT = 0;
+      p.energy = Math.min(100, p.energy + 22);
+      sim.focus = Math.max(sim.focus, 0.62);
+      sim.hitstop = Math.max(sim.hitstop, 0.1);
+      sim.cam.trauma = Math.min(1, sim.cam.trauma + 0.38);
+      sim.cues.perfect++;
+      floatText(sim, p.x, 2.2, p.z, "صدّ مثالي", false);
+      burst(sim, p.x, 1.1, p.z, 16, TIDE, 3.5);
+      hurtEnemy(sim, attacker, 48, 1.2, 0.8);
+      return;
+    }
+  }
   if (p.invuln > 0) {
     if (p.dodgeT > 0.02) {
       p.energy = Math.min(100, p.energy + 18);
@@ -826,6 +850,13 @@ function startSwing(sim: Sim) {
 function stepPlayer(sim: Sim, dt: number, first: boolean) {
   const p = sim.player;
   if (first && sim.edge.attack) p.bufferAttack = 0.18;
+  if (first && sim.edge.parry && p.parryCd <= 0 && p.hp > 0 && p.dodgeT <= 0) {
+    p.parryT = 0.28;
+    p.parryCd = 1.25;
+    p.attackT = 0;
+    p.bufferAttack = 0;
+    burst(sim, p.x, 1.05, p.z, 5, TIDE, 1.4);
+  }
   if (first && sim.edge.dodge && p.dodgeCd <= 0 && p.dodgeT <= 0 && p.hp > 0) {
     const axes = moveAxes(sim);
     p.dodgeT = 0.28;
@@ -929,6 +960,8 @@ function stepPlayer(sim: Sim, dt: number, first: boolean) {
 
   p.bufferAttack = Math.max(0, p.bufferAttack - dt);
   p.dodgeCd = Math.max(0, p.dodgeCd - dt);
+  p.parryT = Math.max(0, p.parryT - dt);
+  p.parryCd = Math.max(0, p.parryCd - dt);
   p.skillCd = Math.max(0, p.skillCd - dt);
   p.invuln = Math.max(0, p.invuln - dt);
   p.hurt = Math.max(0, p.hurt - dt);
@@ -1136,6 +1169,7 @@ function step(sim: Sim, dt: number, first: boolean) {
     sim.edge.dodge = false;
     sim.edge.skill = false;
     sim.edge.ult = false;
+    sim.edge.parry = false;
   }
 }
 

@@ -904,28 +904,38 @@ function stepPlayer(sim: Sim, dt: number, first: boolean) {
     burst(sim, p.x, 0.3, p.z, 6, TIDE, 1.6);
   }
   if (first && sim.edge.skill && p.skillCd <= 0 && p.dodgeT <= 0 && p.hp > 0) {
-    p.skillCd = 5.6;
+    const hero = CHARACTERS[p.character];
+    p.skillCd = hero.skillCooldown;
     sim.cues.skill++;
-    spawnSlash(sim, p.x, p.z, p.yaw, 2.4, 1, 0.9);
-    spawnSlash(sim, p.x, p.z, p.yaw + Math.PI, 2.4, 1, 1.2);
-    burst(sim, p.x, 1, p.z, 16, TIDE, 4);
-    for (const e of sim.enemies) {
-      if (e.state === "dead") continue;
-      if (Math.hypot(e.x - p.x, e.z - p.z) < 4.8 + e.radius) hurtEnemy(sim, e, 36, 1.15, 0.5);
+    if (p.character === 0) {
+      spawnSlash(sim, p.x, p.z, p.yaw, 2.7, 1, 0.9);
+      spawnSlash(sim, p.x, p.z, p.yaw + Math.PI, 2.7, 1, 1.2);
+      burst(sim, p.x, 1, p.z, 18, TIDE, 4);
+      for (const e of sim.enemies) if (e.state !== "dead" && Math.hypot(e.x - p.x, e.z - p.z) < 5.2 + e.radius) hurtEnemy(sim, e, 40, 1.25, 0.55);
+    } else if (p.character === 1) {
+      spawnSlash(sim, p.x, p.z, p.yaw, 3.8, 1, 1.15);
+      burst(sim, p.x, 1, p.z, 24, RIFT, 3.2);
+      for (const e of sim.enemies) if (e.state !== "dead" && coneHit(p.x, p.z, p.yaw, e.x, e.z, 7 + e.radius, 0.05)) hurtEnemy(sim, e, 66, 2.1, 0.95);
+    } else {
+      burst(sim, p.x, 1.1, p.z, 16, { r: 0.72, g: 0.55, b: 1 }, 2.8);
+      for (const e of sim.enemies) if (e.state !== "dead" && Math.hypot(e.x - p.x, e.z - p.z) < 17) spawnShot(sim, p.x, p.z, e.x, e.z, 28);
+      p.invuln = Math.max(p.invuln, 0.22);
     }
-    sim.cam.trauma = Math.min(1, sim.cam.trauma + 0.4);
+    sim.cam.trauma = Math.min(1, sim.cam.trauma + (p.character === 1 ? 0.58 : 0.4));
   }
   if (first && sim.edge.ult && p.energy >= 100 && p.ultT <= 0 && p.hp > 0 && p.dodgeT <= 0) {
     p.energy = 0;
-    p.ultT = 0.55;
+    p.ultT = p.character === 1 ? 0.72 : 0.55;
     p.invuln = Math.max(p.invuln, 0.5);
     p.attackT = 0;
     sim.cues.ult++;
-    spawnSlash(sim, p.x, p.z, p.yaw, 3.2, 2, 1.3);
-    burst(sim, p.x, 1.2, p.z, 24, TIDE, 5);
+    const radius = p.character === 1 ? 6.5 : 7.2;
+    const damage = p.character === 1 ? 132 : p.character === 2 ? 68 : 92;
+    spawnSlash(sim, p.x, p.z, p.yaw, p.character === 1 ? 4.4 : 3.2, 2, 1.3);
+    burst(sim, p.x, 1.2, p.z, p.character === 1 ? 34 : 24, p.character === 2 ? { r: 0.72, g: 0.55, b: 1 } : TIDE, 5);
     for (const e of sim.enemies) {
       if (e.state === "dead") continue;
-      if (Math.hypot(e.x - p.x, e.z - p.z) < 7.2 + e.radius) hurtEnemy(sim, e, 92, 1.7, 0.85);
+      if (Math.hypot(e.x - p.x, e.z - p.z) < radius + e.radius) hurtEnemy(sim, e, damage, p.character === 1 ? 2.5 : 1.7, p.character === 1 ? 1.1 : 0.85);
     }
     sim.cam.trauma = Math.min(1, sim.cam.trauma + 0.75);
     sim.cam.distKick = 1.1;

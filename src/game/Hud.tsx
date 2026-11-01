@@ -271,42 +271,24 @@ export function Hud({
 }
 
 function Ability({
-  label,
-  hint,
-  ready,
-  cd,
-  max,
-  onPress,
-  accent,
+  label, hint, ready, cd, max, onPress, accent,
 }: {
-  label: string;
-  hint: string;
-  ready: boolean;
-  cd?: number;
-  max?: number;
-  onPress: () => void;
-  accent?: boolean;
+  label: string; hint: string; ready: boolean; cd?: number; max?: number; onPress: () => void; accent?: boolean;
 }) {
   const cooling = cd != null && max != null && cd > 0;
+  const Icon = label === "ضرب" ? Sword : label === "صدّ" ? Shield : label === "تهرّب" ? Footprints : label === "مهارة" ? Zap : Sparkles;
   return (
-    <button
-      type="button"
-      data-ui
-      className={
-        accent
-          ? "press pointer-events-auto relative grid h-14 w-14 place-items-center rounded-xl border border-tide bg-ink text-tide"
-          : "press pointer-events-auto relative grid h-14 w-14 place-items-center overflow-hidden rounded-xl border border-tide/40 bg-ink text-foam"
-      }
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        onPress();
-      }}
-    >
-      {cooling && (
-        <span
-          className="absolute inset-x-0 bottom-0 bg-ink"
-          style={{ height: `${Math.min(100, (cd / max) * 100)}%` }}
-    function Menu({
+    <button type="button" data-ui aria-label={label} title={label}
+      className={accent ? "press pointer-events-auto relative grid h-14 w-14 place-items-center rounded-xl border border-tide bg-ink text-tide" : "press pointer-events-auto relative grid h-14 w-14 place-items-center overflow-hidden rounded-xl border border-tide/40 bg-ink text-foam"}
+      onPointerDown={(e) => { e.stopPropagation(); onPress(); }}>
+      {cooling && <span className="absolute inset-x-0 bottom-0 bg-ink" style={{ height: `${Math.min(100, (cd / max) * 100)}%` }} />}
+      <span className="relative grid place-items-center gap-0.5"><Icon size={21} strokeWidth={2.1}/><span className="text-[9px] leading-none">{cooling ? cd.toFixed(1) : label}</span></span>
+      <span className="sr-only">{label}{ready ? "" : " غير جاهزة"}</span>
+    </button>
+  );
+}
+
+function Menu({
   onStart, best, title, kicker, body, action, mainMenu = false, optionsOpen = false, onOptions,
 }: {
   onStart: () => void; best: number; title: string; kicker: string; body: string; action: string;
@@ -320,35 +302,16 @@ function Ability({
         <h1 className="mt-2 font-display text-5xl font-semibold tracking-wide text-foam md:text-7xl">{title}</h1>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-mist md:text-base">{body}</p>
         <div className="mt-6 grid gap-2">
-          <button type="button" data-ui className="auralis-primary press flex h-14 w-full items-center justify-center gap-3 rounded-xl font-display text-base font-bold" onClick={onStart}>
-            <Play size={19} fill="currentColor" /> {action}
-          </button>
+          <button type="button" data-ui className="auralis-primary press flex h-14 w-full items-center justify-center gap-3 rounded-xl font-display text-base font-bold" onClick={onStart}><Play size={19} fill="currentColor"/> {action}</button>
           {mainMenu && <>
-            <button type="button" data-ui className="auralis-secondary press flex h-12 w-full items-center justify-center gap-2 rounded-xl" onClick={onOptions}>
-              {optionsOpen ? <X size={17}/> : <Settings size={17}/>} {optionsOpen ? "إغلاق الخيارات" : "Options · الخيارات"}
-            </button>
+            <button type="button" data-ui className="auralis-secondary press flex h-12 w-full items-center justify-center gap-2 rounded-xl" onClick={onOptions}>{optionsOpen ? <X size={17}/> : <Settings size={17}/>} {optionsOpen ? "إغلاق الخيارات" : "Options · الخيارات"}</button>
             <div className={optionsOpen ? "auralis-options grid grid-cols-2 gap-2" : "hidden"}>
               <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm"><Volume2 size={17} className="mb-2 text-tide"/>الصوت والتحكم<br/><span className="text-xs text-mist">كتم الصوت من زر السماعة أثناء اللعب</span></div>
               <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm"><Crosshair size={17} className="mb-2 text-tide"/>الكاميرا<br/><span className="text-xs text-mist">اسحب يمين الشاشة لتدوير الكاميرا</span></div>
             </div>
-            <p className="mt-2 flex items-center justify-center gap-2 text-xs text-mist"><BookOpen size={14}/> عصا الحركة · اسحب يميناً للكاميرا · أيقونات القتال على اليمين</p>
           </>}
         </div>
         <p className="mt-4 text-xs text-mist">أفضل نتيجة <span className="text-foam">{best}</span></p>
-      </div>
-    </div>
-  );
-}
-
-nk"
-          onClick={onStart}
-        >
-          {action}
-        </button>
-        <p className="mt-3 text-xs leading-relaxed text-mist md:hidden">
-          العصا تحريك · يمين الشاشة تدوير · الأزرار للضرب والتهرّب
-        </p>
-        <p className="mt-2 text-xs text-mist">الأفضل {best}</p>
       </div>
     </div>
   );

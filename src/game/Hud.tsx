@@ -21,6 +21,7 @@ export interface HudSnap {
   targetName: string | null;
   targetHp: number;
   targetMaxHp: number;
+  character: 0 | 1 | 2;
 }
 
 export function readSnap(sim: Sim): HudSnap {
@@ -45,6 +46,7 @@ export function readSnap(sim: Sim): HudSnap {
     })(),
     targetHp: sim.targetId === null ? 0 : (sim.enemies.find((enemy) => enemy.id === sim.targetId)?.hp ?? 0),
     targetMaxHp: sim.targetId === null ? 0 : (sim.enemies.find((enemy) => enemy.id === sim.targetId)?.maxHp ?? 0),
+    character: sim.player.character,
   };
 }
 
@@ -107,7 +109,7 @@ export function Hud({
       <div className="relative z-20 flex items-start justify-between gap-3">
         <div className={playing || snap.phase === "pause" ? "w-56 max-w-[70%]" : "w-56 opacity-0"}>
           <div className="flex items-baseline justify-between gap-2">
-            <p className="font-display text-sm text-foam">سيرا</p>
+            <p className="font-display text-sm text-foam">{["سيرا · SERA", "كايل · KAEL", "ليورا · LYRA"][snap.character]}</p>
             <p className="text-xs text-mist">
               {Math.ceil(snap.hp)} / {snap.maxHp}
             </p>
@@ -121,6 +123,23 @@ export function Hud({
           <p className="mt-1 text-xs text-mist">الطاقة {Math.floor(snap.energy)}</p>
         </div>
         <div className="flex gap-2">
+          {playing && (
+            <button
+              type="button"
+              data-ui
+              className="press pointer-events-auto rounded-full border border-tide/50 bg-panel px-3 text-xs font-semibold text-tide"
+              onClick={() => {
+                const live = simRef.current;
+                if (!live) return;
+                live.player.character = ((live.player.character + 1) % 3) as 0 | 1 | 2;
+                live.player.hp = Math.min(live.player.maxHp, live.player.hp + 8);
+                live.banner = ["سيرا · نصل الصدى", "كايل · حارس الشق", "ليورا · ناسجة الطاقة"][live.player.character];
+                live.bannerT = 1.5;
+                onChange();
+              }}
+              aria-label="تبديل الشخصية"
+            >{["SERA", "KAEL", "LYRA"][(snap.character + 1) % 3]} ↻</button>
+          )}
           <button
             type="button"
             data-ui

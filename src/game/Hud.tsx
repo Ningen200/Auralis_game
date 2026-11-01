@@ -186,18 +186,18 @@ export function Hud({
         {playing && (
           <div
             data-ui
-            className="pointer-events-auto absolute top-20 right-0 bottom-28 z-0 w-1/2 md:hidden"
+            className="mobile-look-zone pointer-events-auto absolute top-20 right-0 bottom-28 z-0 w-1/2"
             onPointerDown={(e) => beginLook(e, sim)}
             onPointerMove={(e) => moveLook(e, sim)}
             onPointerUp={(e) => endLook(e)}
           />
         )}
 
-        <div className="mt-auto flex items-end justify-between gap-3">
+        <div className="mobile-control-dock mt-auto flex items-end justify-between gap-3">
           {playing && (
             <div
               data-ui
-              className="pointer-events-auto relative z-20 h-28 w-28 touch-none rounded-full border border-tide/50 bg-ink md:hidden"
+              className="mobile-stick pointer-events-auto relative z-20 h-28 w-28 touch-none rounded-full border border-tide/50 bg-ink"
               onPointerDown={(e) => {
                 gesture();
                 const el = e.currentTarget;
@@ -215,7 +215,7 @@ export function Hud({
             </div>
           )}
 
-          <div className={playing ? "relative z-20 ms-auto grid grid-cols-2 gap-2" : "hidden"}>
+          <div className={playing ? "mobile-action-grid relative z-20 ms-auto grid grid-cols-2 gap-2" : "hidden"}>
           <Ability label="تهرّب" hint="Shift" ready={snap.dodgeCd <= 0} cd={snap.dodgeCd} max={DODGE_MAX} onPress={() => edge("dodge")} />
           <Ability label="صدّ" hint="L" ready={snap.parryCd <= 0} cd={snap.parryCd} max={1.25} onPress={() => edge("parry")} />
           <Ability label="مهارة" hint="E" ready={snap.skillCd <= 0} cd={snap.skillCd} max={SKILL_MAX} onPress={() => edge("skill")} />

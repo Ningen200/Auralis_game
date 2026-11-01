@@ -849,7 +849,19 @@ function startSwing(sim: Sim) {
 
 function stepPlayer(sim: Sim, dt: number, first: boolean) {
   const p = sim.player;
-  if (first && sim.edge.attack) p.bufferAttack = 0.18;
+  if (first && sim.edge.attack) {
+    p.bufferAttack = 0.18;
+    // Soft-lock the nearest nearby enemy on the first strike so touch combat
+    // does not require a separate target-lock tap before every encounter.
+    if (sim.targetId === null) {
+      const nearest = sim.enemies
+        .filter((enemy) => enemy.state !== "dead" && enemy.hp > 0)
+        .map((enemy) => ({ enemy, distance: Math.hypot(enemy.x - p.x, enemy.z - p.z) }))
+        .filter((entry) => entry.distance <= 8)
+        .sort((a, b) => a.distance - b.distance)[0];
+      if (nearest) sim.targetId = nearest.enemy.id;
+    }
+  }
   if (first && sim.edge.parry && p.parryCd <= 0 && p.hp > 0 && p.dodgeT <= 0) {
     p.parryT = 0.28;
     p.parryCd = 1.25;

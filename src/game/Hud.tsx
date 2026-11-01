@@ -191,6 +191,8 @@ export function Hud({
             onPointerDown={(e) => beginLook(e, sim)}
             onPointerMove={(e) => moveLook(e, sim)}
             onPointerUp={(e) => endLook(e)}
+            onPointerCancel={(e) => endLook(e)}
+            onLostPointerCapture={(e) => endLook(e)}
           />
         )}
 
@@ -205,6 +207,7 @@ export function Hud({
                 el.setPointerCapture(e.pointerId);
                 moveStick(e, sim);
               }}
+              onLostPointerCapture={(e) => releaseStick(e.currentTarget, sim)}
               onPointerMove={(e) => {
                 if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
                 moveStick(e, sim);
@@ -379,8 +382,10 @@ function beginLook(e: ReactPointerEvent<HTMLDivElement>, sim: Sim | null) {
 
 function moveLook(e: ReactPointerEvent<HTMLDivElement>, sim: Sim | null) {
   if (!sim || look.id !== e.pointerId) return;
-  sim.lookX += (e.clientX - look.x) * 1.7;
-  sim.lookY += (e.clientY - look.y) * 1.35;
+  // Slightly lower touch sensitivity makes fine aiming easier on phones.
+  const sensitivity = window.matchMedia("(orientation: landscape)").matches ? 1.35 : 1.2;
+  sim.lookX += Math.max(-90, Math.min(90, e.clientX - look.x)) * sensitivity;
+  sim.lookY += Math.max(-90, Math.min(90, e.clientY - look.y)) * sensitivity * 0.82;
   look.x = e.clientX;
   look.y = e.clientY;
 }

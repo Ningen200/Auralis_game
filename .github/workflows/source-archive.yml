@@ -1,0 +1,25 @@
+name: Source archive
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+actions: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Package full project source
+        run: |
+          mkdir -p /tmp/auralis-source
+          git archive --format=zip --prefix=Auralis_game/ HEAD -o /tmp/auralis-source/Auralis_game_Source.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auralis-full-source
+          path: /tmp/auralis-source/Auralis_game_Source.zip
+          if-no-files-found: error
+          retention-days: 30

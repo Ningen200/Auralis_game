@@ -121,6 +121,7 @@ export interface Sim {
     x: number;
     z: number;
     yaw: number;
+    character: 0 | 1 | 2;
     speed: number;
     hp: number;
     maxHp: number;
@@ -273,6 +274,7 @@ export function createSim(): Sim {
       x: 0,
       z: 7,
       yaw: 0,
+      character: 0,
       speed: 0,
       hp: 120,
       maxHp: 120,
@@ -1228,12 +1230,14 @@ export function frame(sim: Sim, dt: number) {
 
 export function beginRun(sim: Sim) {
   const best = sim.best;
+  const character = sim.player.character;
   const cues = sim.cues;
   const keys = sim.keys;
   const injected = sim.injected;
   const fresh = createSim();
   Object.assign(sim, fresh);
   sim.best = Math.max(best, fresh.best);
+  sim.player.character = character;
   sim.targetId = null;
   sim.cues = cues;
   sim.keys = keys;

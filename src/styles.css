@@ -94,3 +94,55 @@
     transition: none;
   }
 }
+
+
+/* Touch-first controls: remain visible on wide phones in landscape. */
+.mobile-look-zone { touch-action: none; }
+.mobile-control-dock { display: none; }
+.mobile-stick { touch-action: none; box-shadow: inset 0 0 22px rgba(26,214,192,.12), 0 8px 28px rgba(0,0,0,.35); }
+.mobile-stick .nub {
+  background: radial-gradient(circle at 35% 30%, #b8fff5 0, #1ad6c0 48%, #087d78 100%);
+  box-shadow: 0 2px 12px rgba(26,214,192,.42);
+  pointer-events: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  .mobile-control-dock {
+    display: block;
+    position: absolute;
+    inset-inline: 0;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    height: clamp(112px, 27vh, 154px);
+    pointer-events: none;
+  }
+  .mobile-stick {
+    position: absolute;
+    left: max(14px, env(safe-area-inset-left));
+    bottom: 0;
+    width: clamp(104px, 19vw, 138px);
+    height: clamp(104px, 19vw, 138px);
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(20,45,52,.96), rgba(5,15,21,.9));
+  }
+  .mobile-action-grid {
+    position: absolute;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: 0;
+    gap: clamp(6px, 1.2vw, 10px);
+  }
+  .mobile-action-grid button { width: clamp(48px, 9vw, 60px); height: clamp(48px, 9vw, 60px); }
+  .mobile-look-zone {
+    top: max(76px, env(safe-area-inset-top));
+    bottom: max(124px, calc(env(safe-area-inset-bottom) + 112px));
+    width: 54%;
+    touch-action: none;
+  }
+}
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  .mobile-control-dock { height: clamp(104px, 30vh, 138px); }
+  .mobile-stick {
+    width: clamp(100px, 17vh, 128px);
+    height: clamp(100px, 17vh, 128px);
+  }
+  .mobile-action-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mobile-action-grid button { width: clamp(46px, 9vh, 58px); height: clamp(46px, 9vh, 58px); }
+}

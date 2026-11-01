@@ -1,5 +1,5 @@
-import type { PointerEvent as ReactPointerEvent, RefObject } from "react";
-import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
+import { Pause, Play, Volume2, VolumeX, Sword, Shield, Zap, Footprints, Sparkles, Crosshair, Settings, BookOpen, X } from "lucide-react";
 import type { AudioBus } from "@/game/audio";
 import { beginRun, cycleTarget, togglePause, WAVE_TOTAL, type Phase, type Sim } from "@/game/sim";
 
@@ -67,6 +67,7 @@ export function Hud({
   onChange: () => void;
 }) {
   const sim = simRef.current;
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   function gesture() {
     audio.unlock();
@@ -141,7 +142,7 @@ export function Hud({
                 onChange();
               }}
               aria-label="قفل الهدف أو التبديل بين الأعداء"
-            >{snap.targetName ? "تبديل الهدف · Q" : "قفل الهدف · Q"}</button>
+            >{snap.targetName ? "تبديل الهدف" : "قفل الهدف"}</button>
           )}
           {(playing || snap.phase === "pause") && (
             <button
@@ -216,10 +217,10 @@ export function Hud({
           )}
 
           <div className={playing ? "mobile-action-grid relative z-20 ms-auto grid grid-cols-2 gap-2" : "hidden"}>
-          <Ability label="تهرّب" hint="Shift" ready={snap.dodgeCd <= 0} cd={snap.dodgeCd} max={DODGE_MAX} onPress={() => edge("dodge")} />
-          <Ability label="صدّ" hint="L" ready={snap.parryCd <= 0} cd={snap.parryCd} max={1.25} onPress={() => edge("parry")} />
-          <Ability label="مهارة" hint="E" ready={snap.skillCd <= 0} cd={snap.skillCd} max={SKILL_MAX} onPress={() => edge("skill")} />
-          <Ability label="ضرب" hint="J" ready onPress={() => edge("attack")} />
+          <Ability icon={Footprints} label="تهرّب" hint="Shift" ready={snap.dodgeCd <= 0} cd={snap.dodgeCd} max={DODGE_MAX} onPress={() => edge("dodge")} />
+          <Ability icon={Shield} label="صدّ" hint="L" ready={snap.parryCd <= 0} cd={snap.parryCd} max={1.25} onPress={() => edge("parry")} />
+          <Ability icon={Zap} label="مهارة" hint="E" ready={snap.skillCd <= 0} cd={snap.skillCd} max={SKILL_MAX} onPress={() => edge("skill")} />
+          <Ability icon={Sword} label="ضرب" hint="J" ready onPress={() => edge("attack")} />
           <Ability
             label="تحرير"
             hint="R"
@@ -231,7 +232,7 @@ export function Hud({
       </div>
 
       {snap.phase === "menu" && (
-        <Menu onStart={start} best={snap.best} title="أوراليس" kicker="صدى النصل" body="منذ انطفاء القمر الأول، ابتلعت الشقوق جزيرة الرنين. سيرا، حاملة نصل الصدى، هي آخر من يستطيع إيقاظ المنارات وإغلاق الصدع. اعبر ست موجات من الحراس، واكشف قلب الجزيرة." action="ابدأ Start" />
+        <Menu mainMenu optionsOpen={optionsOpen} onOptions={() => setOptionsOpen((v) => !v)} onStart={start} best={snap.best} title="أوراليس" kicker="صدى النصل · AURALIS" body="حين انكسر ضوء القمر، استيقظ الصدع في قلب الجزيرة. احمل نصل الصدى، واجتز الظلال لتعيد النبض إلى العالم." action="ابدأ اللعب · START" />
       )}
       {snap.phase === "pause" && sim && (
         <Menu
@@ -305,42 +306,41 @@ function Ability({
         <span
           className="absolute inset-x-0 bottom-0 bg-ink"
           style={{ height: `${Math.min(100, (cd / max) * 100)}%` }}
-        />
-      )}
-      <span className="relative font-display text-xs">{cooling ? cd.toFixed(1) : hint}</span>
-      <span className="sr-only">
-        {label}
-        {ready ? "" : " غير جاهزة"}
-      </span>
-    </button>
+    function Menu({
+  onStart, best, title, kicker, body, action, mainMenu = false, optionsOpen = false, onOptions,
+}: {
+  onStart: () => void; best: number; title: string; kicker: string; body: string; action: string;
+  mainMenu?: boolean; optionsOpen?: boolean; onOptions?: () => void;
+}) {
+  return (
+    <div className={mainMenu ? "auralis-main-menu pointer-events-auto absolute inset-0 z-30 flex items-center p-4 md:p-10" : "pointer-events-none absolute inset-0 flex items-end p-3 md:items-center md:p-8"}>
+      <div className={mainMenu ? "auralis-menu-card rise pointer-events-auto w-full max-w-lg rounded-2xl p-5 md:p-8" : "rise pointer-events-auto w-full max-w-md rounded-xl border border-line bg-panel p-4 md:p-5"}>
+        {mainMenu && <div className="auralis-mark"><span>✦</span></div>}
+        <p className="font-display text-sm tracking-[.22em] text-tide">{kicker}</p>
+        <h1 className="mt-2 font-display text-5xl font-semibold tracking-wide text-foam md:text-7xl">{title}</h1>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-mist md:text-base">{body}</p>
+        <div className="mt-6 grid gap-2">
+          <button type="button" data-ui className="auralis-primary press flex h-14 w-full items-center justify-center gap-3 rounded-xl font-display text-base font-bold" onClick={onStart}>
+            <Play size={19} fill="currentColor" /> {action}
+          </button>
+          {mainMenu && <>
+            <button type="button" data-ui className="auralis-secondary press flex h-12 w-full items-center justify-center gap-2 rounded-xl" onClick={onOptions}>
+              {optionsOpen ? <X size={17}/> : <Settings size={17}/>} {optionsOpen ? "إغلاق الخيارات" : "Options · الخيارات"}
+            </button>
+            <div className={optionsOpen ? "auralis-options grid grid-cols-2 gap-2" : "hidden"}>
+              <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm"><Volume2 size={17} className="mb-2 text-tide"/>الصوت والتحكم<br/><span className="text-xs text-mist">كتم الصوت من زر السماعة أثناء اللعب</span></div>
+              <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm"><Crosshair size={17} className="mb-2 text-tide"/>الكاميرا<br/><span className="text-xs text-mist">اسحب يمين الشاشة لتدوير الكاميرا</span></div>
+            </div>
+            <p className="mt-2 flex items-center justify-center gap-2 text-xs text-mist"><BookOpen size={14}/> عصا الحركة · اسحب يميناً للكاميرا · أيقونات القتال على اليمين</p>
+          </>}
+        </div>
+        <p className="mt-4 text-xs text-mist">أفضل نتيجة <span className="text-foam">{best}</span></p>
+      </div>
+    </div>
   );
 }
 
-function Menu({
-  onStart,
-  best,
-  title,
-  kicker,
-  body,
-  action,
-}: {
-  onStart: () => void;
-  best: number;
-  title: string;
-  kicker: string;
-  body: string;
-  action: string;
-}) {
-  return (
-    <div className="pointer-events-none absolute inset-0 flex items-end p-3 md:items-center md:p-8">
-      <div className="rise pointer-events-auto w-full max-w-md rounded-xl border border-line bg-panel p-4 md:p-5">
-        <p className="font-display text-sm tracking-wide text-tide">{kicker}</p>
-        <h1 className="mt-1 font-display text-4xl font-semibold text-foam md:text-5xl">{title}</h1>
-        <p className="mt-3 text-sm leading-relaxed text-mist">{body}</p>
-        <button
-          type="button"
-          data-ui
-          className="press mt-4 h-12 w-full rounded-lg bg-tide font-display text-base font-semibold text-ink"
+nk"
           onClick={onStart}
         >
           {action}

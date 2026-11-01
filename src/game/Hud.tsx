@@ -16,6 +16,7 @@ export interface HudSnap {
   bannerOn: boolean;
   skillCd: number;
   dodgeCd: number;
+  parryCd: number;
   kills: number;
   targetName: string | null;
   targetHp: number;
@@ -36,6 +37,7 @@ export function readSnap(sim: Sim): HudSnap {
     bannerOn: sim.bannerT > 0,
     skillCd: sim.player.skillCd,
     dodgeCd: sim.player.dodgeCd,
+    parryCd: sim.player.parryCd,
     kills: sim.kills,
     targetName: sim.targetId === null ? null : (() => {
       const target = sim.enemies.find((enemy) => enemy.id === sim.targetId && enemy.state !== "dead");
@@ -70,7 +72,7 @@ export function Hud({
     audio.unlock();
   }
 
-  function edge(kind: "attack" | "dodge" | "skill" | "ult") {
+  function edge(kind: "attack" | "dodge" | "skill" | "ult" | "parry") {
     gesture();
     const live = simRef.current;
     if (!live || live.phase !== "play") return;
@@ -215,6 +217,7 @@ export function Hud({
 
           <div className={playing ? "relative z-20 ms-auto grid grid-cols-2 gap-2" : "hidden"}>
           <Ability label="تهرّب" hint="Shift" ready={snap.dodgeCd <= 0} cd={snap.dodgeCd} max={DODGE_MAX} onPress={() => edge("dodge")} />
+          <Ability label="صدّ" hint="L" ready={snap.parryCd <= 0} cd={snap.parryCd} max={1.25} onPress={() => edge("parry")} />
           <Ability label="مهارة" hint="E" ready={snap.skillCd <= 0} cd={snap.skillCd} max={SKILL_MAX} onPress={() => edge("skill")} />
           <Ability label="ضرب" hint="J" ready onPress={() => edge("attack")} />
           <Ability
@@ -357,6 +360,7 @@ function Controls() {
     ["J أو نقرة", "سلسلة من ثلاث ضربات"],
     ["Q أو Tab", "قفل الهدف / تبديل العدو"],
     ["Shift", "تهرّب"],
+    ["L", "صدّ مثالي / Counter"],
     ["E", "مهارة الصدى"],
     ["R", "تحرير عند امتلاء الطاقة"],
     ["سحب أيمن", "تدوير الكاميرا · Z / X"],

@@ -455,6 +455,9 @@ function Hero({ simRef }: { simRef: RefObject<Sim | null> }) {
   const ghostRefs = useRef<(THREE.Group | null)[]>([]);
   const sample = useRef(0);
   const hurtMat = useRef<THREE.MeshStandardMaterial>(null);
+  const hairMat = useRef<THREE.MeshStandardMaterial>(null);
+  const bladeMat = useRef<THREE.MeshStandardMaterial>(null);
+  const crest = useRef<THREE.Group>(null);
 
   useFrame((_, dt) => {
     const sim = simRef.current;
@@ -496,11 +499,24 @@ function Hero({ simRef }: { simRef: RefObject<Sim | null> }) {
       armL.current.rotation.z = attacking ? -0.4 : -0.2;
     }
     if (coat.current) coat.current.rotation.x = -run * 0.25 + (p.dodgeT > 0 ? -0.6 : 0);
+    const palettes = [
+      { glow: "#1ad6c0", armor: "#16343c", hair: "#d9e4e5", blade: "#eafffb" },
+      { glow: "#ff875c", armor: "#3b2525", hair: "#30252a", blade: "#ffd2a6" },
+      { glow: "#ad8bff", armor: "#292744", hair: "#b8a4e8", blade: "#e7d9ff" },
+    ] as const;
+    const palette = palettes[p.character];
     if (hurtMat.current) {
       const flash = p.hurt > 0 || p.ultT > 0;
-      hurtMat.current.emissive.set(p.hurt > 0 ? "#ff5d73" : "#1ad6c0");
+      hurtMat.current.color.set(palette.armor);
+      hurtMat.current.emissive.set(p.hurt > 0 ? "#ff5d73" : palette.glow);
       hurtMat.current.emissiveIntensity = flash ? 0.85 : 0.18;
     }
+    if (hairMat.current) hairMat.current.color.set(palette.hair);
+    if (bladeMat.current) {
+      bladeMat.current.color.set(palette.blade);
+      bladeMat.current.emissive.set(palette.glow);
+    }
+    if (crest.current) crest.current.visible = p.character !== 0;
     sample.current -= capped;
     if (p.dodgeT > 0 && sample.current <= 0) {
       sample.current = 0.045;
@@ -593,6 +609,7 @@ function Hero({ simRef }: { simRef: RefObject<Sim | null> }) {
               <mesh position={[0, 0.5, 0]} castShadow>
                 <boxGeometry args={[0.085, 1.22, 0.19]} />
                 <meshStandardMaterial
+                  ref={bladeMat}
                   color="#f4fffb"
                   metalness={0.72}
                   roughness={0.22}
@@ -628,7 +645,7 @@ function Hero({ simRef }: { simRef: RefObject<Sim | null> }) {
           <mesh position={[0.075, 1.585, 0.164]}><sphereGeometry args={[0.018, 10, 8]} /><meshBasicMaterial color="#17242b" /></mesh>
           <mesh position={[0, 1.535, 0.17]}><sphereGeometry args={[0.014, 8, 6]} /><meshStandardMaterial color="#b97872" roughness={0.8} /></mesh>
           {/* Sculpted pale-silver hairstyle */}
-          <mesh position={[0, 1.755, -0.005]} scale={[1.08, 0.72, 0.98]}><sphereGeometry args={[0.205, 18, 14]} /><meshStandardMaterial color="#d9e4e5" roughness={0.42} metalness={0.12} /></mesh>
+          <mesh position={[0, 1.755, -0.005]} scale={[1.08, 0.72, 0.98]}><sphereGeometry args={[0.205, 18, 14]} /><meshStandardMaterial ref={hairMat} color="#d9e4e5" roughness={0.42} metalness={0.12} /></mesh>
           {[-1, -0.52, 0, 0.52, 1].map((v, i) => (
             <mesh key={`fringe-${i}`} position={[v * 0.115, 1.68 - Math.abs(v) * 0.018, 0.12]} rotation={[0.12, 0, v * -0.28]}>
               <coneGeometry args={[0.075, 0.25 + (i % 2) * 0.045, 7]} />
@@ -659,6 +676,10 @@ function Hero({ simRef }: { simRef: RefObject<Sim | null> }) {
             <mesh position={[0, 0, 0.035]}><boxGeometry args={[0.19, 0.16, 0.31]} /><meshStandardMaterial color="#0b1821" roughness={0.62} /></mesh>
             <mesh position={[0, 0.095, -0.015]}><cylinderGeometry args={[0.095, 0.11, 0.12, 8]} /><meshStandardMaterial color="#91aaad" metalness={0.65} roughness={0.3} /></mesh>
           </group>)}
+        </group>
+        <group ref={crest} position={[0, 1.78, -0.02]} visible={false}>
+          <mesh rotation={[0, 0, Math.PI / 2]} position={[0, 0.04, -0.02]}><coneGeometry args={[0.12, 0.48, 5]} /><meshStandardMaterial color="#c4b2ff" metalness={0.55} roughness={0.3} /></mesh>
+          <mesh position={[0, -0.06, 0.12]}><torusGeometry args={[0.16, 0.025, 6, 16]} /><meshStandardMaterial color="#ad8bff" emissive="#ad8bff" emissiveIntensity={1.2} /></mesh>
         </group>
         <pointLight position={[0, 1.4, 0.2]} color="#1ad6c0" intensity={7} distance={11} decay={2} />
       </group>

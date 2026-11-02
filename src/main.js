@@ -51,10 +51,44 @@ const motes=new THREE.Points(moteGeo,new THREE.PointsMaterial({color:0xa6eaff,si
 
 /* EXPLORATION EXPANSION — waterfall ravine, crossing bridge, lost temple and hidden grotto. */
 ground.geometry.dispose();
-const expandedGroundGeo=new THREE.PlaneGeometry(220,220,96,96);
+// Height-field terrain: broad valleys, layered ridges and distant mountain peaks.
+const mountainPeaks=[
+  [-88,-82,25,20],[-54,-101,29,18],[-12,-105,24,20],[34,-100,30,21],[82,-78,25,20],
+  [103,-30,27,19],[98,34,23,22],[62,91,25,20],[5,104,28,22],[-55,94,24,19],[-104,42,26,20],[-108,-22,22,18]
+];
+function terrainHeight(x,z){
+  let h=Math.sin(x*.075+z*.035)*.48+Math.cos(z*.09-x*.025)*.38+Math.sin((x+z)*.16)*.16;
+  for(const p of mountainPeaks){const dx=x-p[0],dz=z-p[1],d2=dx*dx+dz*dz;h+=p[2]*Math.exp(-d2/(2*p[3]*p[3]));}
+  // Keep the central sanctuary and the main paths in a broad, walkable valley.
+  const clearing=Math.exp(-(x*x+z*z)/(2*34*34));
+  h*=1-clearing*.88;
+  const valley=Math.exp(-((x-17)*(x-17)+(z+62)*(z+62))/(2*17*17));
+  h*=1-valley*.58;
+  return Math.max(-.25,h);
+}
+const expandedGroundGeo=new THREE.PlaneGeometry(220,220,180,180);
 const egp=expandedGroundGeo.attributes.position;
-for(let i=0;i<egp.count;i++){const x=egp.getX(i),y=egp.getY(i);egp.setZ(i,Math.sin(x*.12)*.16+Math.cos(y*.1)*.13+Math.sin(x*.035+y*.04)*.22);}
-expandedGroundGeo.computeVertexNormals();ground.geometry=expandedGroundGeo;
+const terrainColors=[];
+for(let i=0;i<egp.count;i++){
+  const x=egp.getX(i),z=-egp.getY(i),h=terrainHeight(x,z);
+  egp.setZ(i,h);
+  const c=h>19?new THREE.Color(0xc9d5dc):h>11?new THREE.Color(0x777f83):h>5?new THREE.Color(0x667c70):new THREE.Color(0x527c64);
+  const variation=(Math.sin(x*.21+z*.13)+Math.cos(z*.17-x*.11))*.035;
+  c.offsetHSL(0,0,variation);terrainColors.push(c.r,c.g,c.b);
+}
+expandedGroundGeo.setAttribute('color',new THREE.Float32BufferAttribute(terrainColors,3));
+expandedGroundGeo.computeVertexNormals();
+ground.geometry=expandedGroundGeo;
+ground.material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.96,metalness:0});
+ground.receiveShadow=true;
+// Angular rock shoulders and cliff faces reinforce the mountain silhouettes.
+const mountainStone=mat(0x687985,.98,.04),snowStone=mat(0xb9cbd0,.9,.02);
+for(let i=0;i<52;i++){
+  const a=i/52*Math.PI*2,ring=83+(i%4)*8,x=Math.cos(a)*ring,z=Math.sin(a)*ring;
+  const peak=mountainPeaks.reduce((best,p)=>Math.abs(x-p[0])+Math.abs(z-p[1])<best.d?{d:Math.abs(x-p[0])+Math.abs(z-p[1]),p}:best,{d:Infinity,p:mountainPeaks[0]}).p;
+  const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(2.8+(i%5)*1.25,1),i%7===0?snowStone:mountainStone);
+  rock.position.set(x,terrainHeight(x,z)+1.4,z);rock.scale.set(1.1,1.7+(i%3)*.35,1.25);rock.rotation.set(.12*i,.37*i,.08*i);rock.castShadow=true;rock.receiveShadow=true;world.add(rock);
+}
 
 // Carved ravine and waterfall basin on the eastern edge of the sanctuary.
 const ravineRock=mat(0x536a78,.94),waterfallMat=new THREE.MeshStandardMaterial({color:0x68d9f2,transparent:true,opacity:.72,roughness:.16,metalness:.18,emissive:0x0a6d91,emissiveIntensity:.7,side:THREE.DoubleSide});
@@ -136,7 +170,7 @@ const clock=new THREE.Clock();function frame(t){requestAnimationFrame(frame);let
   const phase=$('world-phase');if(phase)phase.textContent=cycle>.68?'SANCTUARY · DAYLIGHT':cycle>.36?'SANCTUARY · GOLDEN HOUR':'SANCTUARY · BLUE HOUR';
   fountainOrb.rotation.y+=dt*.8;fountainOrb.position.y=3.2+Math.sin(time*2.1)*.12;water.material.opacity=.68+Math.sin(time*1.7)*.1;
   rippleRings.forEach((ring,i)=>{const s=1+((time*.22+i*.34)%1)*.55;ring.scale.setScalar(s);ring.material.opacity=.32*(1-((time*.22+i*.34)%1));});
-  const mp=moteGeo.attributes.position;for(let i=0;i<moteCount;i++){let y=mp.getY(i)+moteSpeeds[i]*dt;if(y>9)y=.4;mp.setY(i,y);}mp.needsUpdate=true;const h=heroes[active];heroes.forEach((g,i)=>{if(!g.visible)return;let moving=Math.hypot(move.x,move.y)>.08;g.position.y=Math.sin(time*7)*.035*(moving?1:.2);g.rotation.y=camYaw+Math.PI+(moving?Math.atan2(move.x,-move.y):0);g.userData.legs.forEach((l,j)=>l.rotation.x=moving?Math.sin(time*10+j*Math.PI)*.5:0);g.userData.arms.forEach(a=>a.rotation.x=attackT>0?-.8:0);});if(playing&&!paused){attackT=Math.max(0,attackT-dt);skillT=Math.max(0,skillT-dt);invuln=Math.max(0,invuln-dt);parryT=Math.max(0,parryT-dt);enemyTimer-=dt;if(enemyTimer<0){let e=target();if(e&&e.g.position.distanceTo(h.position)<12){parryT=.62;enemyTimer=2.8;say('⚠ هجوم قادم — اضغط صدّ الآن!');}else enemyTimer=1;}foes.forEach(e=>{if(!e.alive)return;let d=h.position.clone().sub(e.g.position);if(d.length()>2.3&&d.length()<18){d.normalize();e.g.position.addScaledVector(d,dt*(e.boss?1.25:.85));}e.g.lookAt(h.position.x,0,h.position.z);if(d.length()<2.8&&invuln<=0)hp=Math.max(0,hp-(e.boss?9:5)*dt);});let f=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw)),r=new THREE.Vector3(f.z,0,-f.x),v=r.multiplyScalar(move.x).add(f.multiplyScalar(-move.y));if(v.lengthSq()>1)v.normalize();h.position.addScaledVector(v,dt*cast[active].speed);h.position.x=THREE.MathUtils.clamp(h.position.x,-38,38);h.position.z=THREE.MathUtils.clamp(h.position.z,-92,30);h.position.x=THREE.MathUtils.clamp(h.position.x,-82,82);
+  const mp=moteGeo.attributes.position;for(let i=0;i<moteCount;i++){let y=mp.getY(i)+moteSpeeds[i]*dt;if(y>9)y=.4;mp.setY(i,y);}mp.needsUpdate=true;const h=heroes[active];heroes.forEach((g,i)=>{if(!g.visible)return;let moving=Math.hypot(move.x,move.y)>.08;g.position.y=Math.sin(time*7)*.035*(moving?1:.2);g.rotation.y=camYaw+Math.PI+(moving?Math.atan2(move.x,-move.y):0);g.userData.legs.forEach((l,j)=>l.rotation.x=moving?Math.sin(time*10+j*Math.PI)*.5:0);g.userData.arms.forEach(a=>a.rotation.x=attackT>0?-.8:0);});if(playing&&!paused){attackT=Math.max(0,attackT-dt);skillT=Math.max(0,skillT-dt);invuln=Math.max(0,invuln-dt);parryT=Math.max(0,parryT-dt);enemyTimer-=dt;if(enemyTimer<0){let e=target();if(e&&e.g.position.distanceTo(h.position)<12){parryT=.62;enemyTimer=2.8;say('⚠ هجوم قادم — اضغط صدّ الآن!');}else enemyTimer=1;}foes.forEach(e=>{if(!e.alive)return;let d=h.position.clone().sub(e.g.position);if(d.length()>2.3&&d.length()<18){d.normalize();e.g.position.addScaledVector(d,dt*(e.boss?1.25:.85));}e.g.position.y=terrainHeight(e.g.position.x,e.g.position.z);e.g.lookAt(h.position.x,0,h.position.z);if(d.length()<2.8&&invuln<=0)hp=Math.max(0,hp-(e.boss?9:5)*dt);});let f=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw)),r=new THREE.Vector3(f.z,0,-f.x),v=r.multiplyScalar(move.x).add(f.multiplyScalar(-move.y));if(v.lengthSq()>1)v.normalize();h.position.addScaledVector(v,dt*cast[active].speed);h.position.x=THREE.MathUtils.clamp(h.position.x,-82,82);h.position.z=THREE.MathUtils.clamp(h.position.z,-105,105);h.position.y=terrainHeight(h.position.x,h.position.z);
   for(const zone of discoveryZones){if(!discoveredZones.has(zone.id)&&Math.hypot(h.position.x-zone.x,h.position.z-zone.z)<zone.r){discoveredZones.add(zone.id);const count=$('explore-count'),bar=$('explore-progress');if(count)count.textContent=discoveredZones.size+' / 3 DISCOVERED';if(bar)bar.style.width=(discoveredZones.size/3*100)+'%';say(zone.name+' ✦');}}
   if(hp<=0){hp=cast[active].hp;h.position.set(0,0,4);say('استعدت توازنك');}update();if(feedT>0){feedT-=dt;if(feedT<=0)$('feed').textContent='';}}let p=h.position;let dist=13;camera.position.set(p.x+Math.sin(camYaw)*Math.cos(camPitch)*dist,p.y+6+Math.sin(camPitch)*dist,p.z+Math.cos(camYaw)*Math.cos(camPitch)*dist);camera.lookAt(p.x,1.2,p.z);renderer.render(scene,camera);}
 camera.position.set(0,9,15);frame(0);window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.35));renderer.setSize(innerWidth,innerHeight);});

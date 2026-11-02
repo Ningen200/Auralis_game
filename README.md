@@ -27,3 +27,12 @@ npm run preview
 
 ## Art direction
 The generated Auralis sanctuary key art is a visual target for the environment and HUD direction. It is not yet wired into runtime as a texture.
+
+
+## Exploration expansion
+- Expanded playable bounds and ground mesh.
+- Blue Ravine waterfall, mist particles and basin.
+- Timber-and-stone bridge leading to the falls.
+- Lost Temple of Light with columns, altar and floating crystals.
+- Hidden Crystal Grotto with a treasure chest.
+- Proximity-based landmark discovery and an exploration progress HUD.

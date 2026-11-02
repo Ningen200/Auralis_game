@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#071729" />
+  <meta name="description" content="Auralis — a mobile fantasy action RPG prototype." />
+  <title>Auralis — Echoes of the Sanctuary</title>
+</head>
+<body>
+  <main id="app">
+    <canvas id="world" aria-label="Auralis 3D game world"></canvas>
+    <section id="menu" class="screen">
+      <div class="panel">
+        <small>AN ECHO FROM ANOTHER WORLD</small>
+        <h1>AURALIS</h1><h3>ECHOES OF THE SANCTUARY</h3>
+        <p>Choose your hero and enter the lost sanctuary.</p>
+        <div id="picker"></div>
+        <button id="start" class="primary">ENTER THE WORLD</button>
+        <button id="settings" class="ghost">SETTINGS</button>
+      </div>
+    </section>
+    <section id="hud" class="hidden">
+      <header>
+        <div><b id="hero-name">SERA</b><div class="hp"><i id="hp"></i></div><small id="hptext">120 / 120 HP</small></div>
+        <button id="pause" aria-label="Pause">Ⅱ</button>
+      </header>
+      <div id="party"></div>
+      <div id="feed"></div>
+      <div id="world-phase">SANCTUARY · DAYLIGHT</div>
+      <div id="joystick"><div class="joy-ring"></div><div id="stick"><span></span></div></div>
+      <div id="actions">
+        <button id="swap" aria-label="Switch hero">⇄<small>SWAP</small></button>
+        <button id="skill" aria-label="Skill">✦<small>SKILL</small></button>
+        <button id="counter" aria-label="Counter">◈<small>COUNTER</small></button>
+        <button id="dodge" aria-label="Dodge">➤<small>DODGE</small></button>
+        <button id="attack" aria-label="Attack">⚔<small>ATTACK</small></button>
+      </div>
+      <div id="hint">DRAG THE WORLD TO ROTATE CAMERA</div>
+    </section>
+    <section id="settings-panel" class="modal hidden"><div class="panel">
+      <h3>SETTINGS</h3><label>Graphics quality <select id="quality"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+      <button id="close-settings" class="primary">CLOSE</button>
+    </div></section>
+    <section id="pause-panel" class="modal hidden"><div class="panel">
+      <h3>PAUSED</h3><button id="resume" class="primary">RESUME</button><button id="home" class="ghost">MAIN MENU</button>
+    </div></section>
+    <div id="rotate">Rotate your phone to landscape for the best experience</div>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body></html>

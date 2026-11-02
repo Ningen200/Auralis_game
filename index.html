@@ -1,16 +1,1 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#071018" />
-    <link rel="icon" type="image/svg+xml" href="/auralis-icon.svg" />
-    <link rel="apple-touch-icon" href="/auralis-icon.svg" />
-    <meta name="description" content="أوراليس — صدى النصل، لعبة أكشن ثلاثية الأبعاد تعمل في المتصفح." />
-    <title>أوراليس — صدى النصل</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/web-main.tsx"></script>
-  </body>
-</html>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#07111f"><link rel="icon" href="/icon.svg"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/src/style.css"><title>Auralis — Echo of the Blade</title></head><body><div id="app"><canvas id="world"></canvas><section id="menu" class="screen"><div class="panel"><small>✦ لعبة حركة ومغامرة ثلاثية الأبعاد ✦</small><h1>AURALIS</h1><h3>ECHO OF THE BLADE</h3><p>اختر بطلك وانطلق لاستكشاف عالم أوراليس.</p><div id="picker"></div><button id="start" class="primary">ابدأ المغامرة</button><button id="settings" class="ghost">الإعدادات ⚙</button></div></section><section id="settings-panel" class="modal hidden"><div class="panel"><button id="close-settings">✕</button><h2>الإعدادات</h2><label>الجودة <select id="quality"><option value="low">اقتصادية</option><option value="medium" selected>متوازنة</option><option value="high">عالية</option></select></label></div></section><section id="hud" class="hidden"><header><div><b id="hero-name">SERA</b><div class="hp"><i id="hp"></i></div><small id="hptext">120 / 120 HP</small></div><button id="pause">Ⅱ</button></header><div id="party"></div><div id="joystick"><div id="stick"></div></div><div id="actions"><button id="swap">⇄<small>تبديل</small></button><button id="dodge">◈<small>مراوغة</small></button><button id="skill">✦<small>مهارة</small></button><button id="counter">⛨<small>صدّ</small></button><button id="attack">⚔<small>هجوم</small></button></div><div id="feed"></div><div id="hint">اسحب يمين الشاشة لتدوير الكاميرا 360°</div></section><section id="pause-panel" class="modal hidden"><div class="panel"><h2>توقف مؤقت</h2><button id="resume" class="primary">متابعة</button><button id="home" class="ghost">القائمة الرئيسية</button></div></section><div id="rotate">↻ للحصول على أفضل تجربة، استخدم الوضع الأفقي</div></div><script type="module" src="/src/main.js"></script></body></html>

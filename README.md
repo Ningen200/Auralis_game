@@ -1,9 +1,15 @@
 # Auralis — Echo of the Blade
-A fresh Vite + Three.js mobile action RPG prototype for Vercel.
 
-Run locally: `npm install && npm run dev`
-Deploy: import this repository into Vercel; build command `npm run build`, output `dist`.
+Mobile-first Three.js action RPG prototype.
 
-Touch controls: left joystick to move, drag the world to orbit the camera, buttons for attack, skill, dodge, counter and party swap. Landscape is recommended.
+## Run
+`npm install && npm run dev`
 
-This first rebuild uses procedural Three.js characters and environment. Separate production GLB rigs/animation assets are planned as the next milestone.
+## Current milestone
+- Expanded procedural sanctuary environment: stone approach, ancient arches, lanterns, grass, flowers, rocks and floating shards.
+- Cinematic daylight setup with hemisphere/fill/rim lighting, exponential fog and improved shadow tuning.
+- Redesigned touch HUD with custom SVG combat glyphs, jewel-like party selector and analog stick.
+- Landscape-specific safe-area layout and touch sizing.
+- Procedural placeholder characters remain intentionally temporary; production GLB rigs are deferred to the final art milestone.
+
+Deploy to Vercel using `npm run build` and output folder `dist`.

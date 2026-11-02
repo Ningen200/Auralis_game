@@ -1,3 +1,4 @@
+import './style.css';
 import * as THREE from 'three';
 const $=id=>document.getElementById(id);
 const cast=[

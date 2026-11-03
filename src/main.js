@@ -1,6 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 const $=id=>document.getElementById(id);
+const mobileDevice=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||matchMedia('(pointer: coarse)').matches;
 const cast=[
 {name:'SERA',ar:'سيرا',role:'نصل الصدى',color:0x78ddff,hp:120,speed:5.2,power:18},
 {name:'KAEL',ar:'كايل',role:'حارس الشق',color:0xff785f,hp:165,speed:4.1,power:29},
@@ -8,7 +9,7 @@ const cast=[
 let pick=0,active=0,playing=false,paused=false,hp=120,attackT=0,skillT=0,invuln=0,parryT=0,enemyTimer=2,camYaw=0,camPitch=.2,drag=null,move={x:0,y:0},feedT=0;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bb8c9);scene.fog=new THREE.FogExp2(0x9bb8c9,.0095);
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,160);
-const renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.35));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.outputColorSpace=THREE.SRGBColorSpace;
+const renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:!mobileDevice,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?1:1.35));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=!mobileDevice;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.outputColorSpace=THREE.SRGBColorSpace;
 const hemi=new THREE.HemisphereLight(0xe5f5ff,0x344b45,2.15);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffe1b2,3.25);sun.position.set(-18,28,12);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-38;sun.shadow.camera.right=38;sun.shadow.camera.top=38;sun.shadow.camera.bottom=-38;sun.shadow.bias=-.00025;scene.add(sun);const fill=new THREE.DirectionalLight(0x78bfff,.85);fill.position.set(18,12,-20);scene.add(fill);const rim=new THREE.DirectionalLight(0x7bffe0,.55);rim.position.set(0,9,24);scene.add(rim);
 const mat=(c,r=.7,m=.1,e=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m,emissive:e,emissiveIntensity:.8});
 const grass=mat(0x527c64),stone=mat(0x8297a9),gold=mat(0xd6b46f,.35,.6),glow=mat(0x65dfff,.25,.4,0x168aff),dark=mat(0x202b40),leaf=mat(0x3f9876);
@@ -43,7 +44,7 @@ const fountainCore=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,2.5,10),glow
 const fountainOrb=new THREE.Mesh(new THREE.OctahedronGeometry(.5),glow);fountainOrb.position.set(0,3.2,-8);world.add(fountainOrb);
 const fountainLight=new THREE.PointLight(0x55dfff,2.2,14);fountainLight.position.set(0,3,-8);world.add(fountainLight);
 const rippleRings=[];for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(1.1+i*.75,.025,5,48),new THREE.MeshBasicMaterial({color:0x8deaff,transparent:true,opacity:.38}));ring.rotation.x=Math.PI/2;ring.position.set(0,.34+i*.002,-8);world.add(ring);rippleRings.push(ring);}
-const moteCount=95,motePositions=new Float32Array(moteCount*3),moteSpeeds=new Float32Array(moteCount);
+const moteCount=42,motePositions=new Float32Array(moteCount*3),moteSpeeds=new Float32Array(moteCount);
 for(let i=0;i<moteCount;i++){motePositions[i*3]=(Math.random()-.5)*54;motePositions[i*3+1]=.5+Math.random()*8;motePositions[i*3+2]=(Math.random()-.5)*60;moteSpeeds[i]=.12+Math.random()*.32;}
 const moteGeo=new THREE.BufferGeometry();moteGeo.setAttribute('position',new THREE.BufferAttribute(motePositions,3));
 const motes=new THREE.Points(moteGeo,new THREE.PointsMaterial({color:0xa6eaff,size:.095,transparent:true,opacity:.72,depthWrite:false}));world.add(motes);
@@ -66,7 +67,7 @@ function terrainHeight(x,z){
   h*=1-valley*.58;
   return Math.max(-.25,h);
 }
-const expandedGroundGeo=new THREE.PlaneGeometry(220,220,180,180);
+const expandedGroundGeo=new THREE.PlaneGeometry(220,220,128,128);
 const egp=expandedGroundGeo.attributes.position;
 const terrainColors=[];
 for(let i=0;i<egp.count;i++){
@@ -96,8 +97,8 @@ for(let i=0;i<7;i++){const cliff=new THREE.Mesh(new THREE.DodecahedronGeometry(3
 const falls=new THREE.Mesh(new THREE.PlaneGeometry(10,12,1,1),waterfallMat);falls.position.set(17,6.3,-66);world.add(falls);
 const fallsLip=new THREE.Mesh(new THREE.BoxGeometry(11,.55,2.2),stone);fallsLip.position.set(17,11.8,-65.2);fallsLip.castShadow=true;world.add(fallsLip);
 const fallsPool=new THREE.Mesh(new THREE.CircleGeometry(6.2,40),new THREE.MeshStandardMaterial({color:0x176c88,roughness:.2,metalness:.25,transparent:true,opacity:.86,emissive:0x063a55,emissiveIntensity:.45}));fallsPool.rotation.x=-Math.PI/2;fallsPool.position.set(17,.13,-68);world.add(fallsPool);
-const fallsMistGeo=new THREE.BufferGeometry(),fallsMistPos=new Float32Array(70*3);
-for(let i=0;i<70;i++){fallsMistPos[i*3]=17+(Math.random()-.5)*11;fallsMistPos[i*3+1]=.3+Math.random()*5;fallsMistPos[i*3+2]=-67+(Math.random()-.5)*5;}
+const fallsMistGeo=new THREE.BufferGeometry(),fallsMistPos=new Float32Array(36*3);
+for(let i=0;i<36;i++){fallsMistPos[i*3]=17+(Math.random()-.5)*11;fallsMistPos[i*3+1]=.3+Math.random()*5;fallsMistPos[i*3+2]=-67+(Math.random()-.5)*5;}
 fallsMistGeo.setAttribute('position',new THREE.BufferAttribute(fallsMistPos,3));
 const fallsMist=new THREE.Points(fallsMistGeo,new THREE.PointsMaterial({color:0xc8f5ff,size:.12,transparent:true,opacity:.55,depthWrite:false}));world.add(fallsMist);
 
@@ -153,19 +154,19 @@ function target(){return foes.filter(e=>e.alive).sort((a,b)=>a.g.position.distan
 function hit(n){let e=target();if(!e)return;if(e.g.position.distanceTo(heroes[active].position)>6){say('اقترب أكثر من العدو');return;}e.hp=Math.max(0,e.hp-n);say((e.boss?'الزعيم':'العدو')+' −'+n);if(!e.hp){e.alive=false;e.g.visible=false;say(e.boss?'انتصرت على حارس الصدع!':'تم إسقاط العدو');}}
 function start(){active=pick;hp=cast[active].hp;heroes.forEach((h,i)=>h.visible=i===active);playing=true;$('menu').classList.add('hidden');$('hud').classList.remove('hidden');update();say('مرحباً بك في أوراليس');}
 $('start').onclick=start;$('settings').onclick=()=>$('settings-panel').classList.remove('hidden');$('close-settings').onclick=()=>$('settings-panel').classList.add('hidden');$('pause').onclick=()=>{paused=true;$('pause-panel').classList.remove('hidden');};$('resume').onclick=()=>{paused=false;$('pause-panel').classList.add('hidden');};$('home').onclick=()=>{paused=false;playing=false;$('pause-panel').classList.add('hidden');$('hud').classList.add('hidden');$('menu').classList.remove('hidden');};$('swap').onclick=()=>swap((active+1)%3);$('attack').onclick=()=>{if(playing&&!paused&&attackT<=0){attackT=.35;hit(cast[active].power);}};$('skill').onclick=()=>{if(playing&&!paused&&skillT<=0){skillT=5;hit(cast[active].power*(active===1?3.5:2.8));say(cast[active].role+' ✦');}};$('dodge').onclick=()=>{invuln=.7;heroes[active].position.x+=Math.sin(camYaw)*-2;heroes[active].position.z+=Math.cos(camYaw)*-2;say('مراوغة!');};$('counter').onclick=()=>{if(parryT>0){parryT=0;hit(cast[active].power*3);say('COUNTER ناجح!');}else say('استعد لتوقيت الصدّ');};
-const joy=$('joystick'),stick=$('stick');let joyId=null;function joyMove(e){let r=joy.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.max(1,Math.hypot(dx,dy)),k=Math.min(1,44/l);move={x:dx/l*k,y:dy/l*k};stick.style.transform='translate('+move.x*40+'px,'+move.y*40+'px)';}joy.onpointerdown=e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joyMove(e);};joy.onpointermove=e=>{if(e.pointerId===joyId)joyMove(e);};function joyEnd(e){if(e.pointerId===joyId){joyId=null;move={x:0,y:0};stick.style.transform='translate(0,0)';}}joy.onpointerup=joyEnd;joy.onpointercancel=joyEnd;
+const joy=$('joystick'),stick=$('stick');let joyId=null;joy.style.touchAction='none';function joyMove(e){let r=joy.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.max(1,Math.hypot(dx,dy)),k=Math.min(1,44/l);move={x:dx/l*k,y:dy/l*k};stick.style.transform='translate('+move.x*40+'px,'+move.y*40+'px)';}joy.onpointerdown=e=>{e.preventDefault();e.stopPropagation();joyId=e.pointerId;try{joy.setPointerCapture(joyId);}catch(_){}joyMove(e);};joy.onpointermove=e=>{if(e.pointerId===joyId){e.preventDefault();joyMove(e);}};function joyEnd(e){if(e.pointerId===joyId){joyId=null;move={x:0,y:0};stick.style.transform='translate(0,0)';}}joy.onpointerup=joyEnd;joy.onpointercancel=joyEnd;
 $('world').onpointerdown=e=>{if(!playing||paused)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};$('world').setPointerCapture(e.pointerId);};$('world').onpointermove=e=>{if(drag&&drag.id===e.pointerId){camYaw-=(e.clientX-drag.x)*.006;camPitch=THREE.MathUtils.clamp(camPitch+(e.clientY-drag.y)*.003,-.05,.7);drag.x=e.clientX;drag.y=e.clientY;}};['pointerup','pointercancel'].forEach(ev=>$('world').addEventListener(ev,()=>drag=null));
-$('quality').onchange=e=>{let v=e.target.value;renderer.setPixelRatio(Math.min(devicePixelRatio,v==='high'?1.7:v==='medium'?1.3:1));renderer.shadowMap.enabled=v!=='low';renderer.setSize(innerWidth,innerHeight);};
+$('quality').onchange=e=>{let v=e.target.value;renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?(v==='high'?1.25:v==='medium'?1:0.8):(v==='high'?1.7:v==='medium'?1.3:1)));renderer.shadowMap.enabled=v!=='low'&&!mobileDevice;renderer.setSize(innerWidth,innerHeight);};
 window.onkeydown=e=>{if(e.key===' ')$('attack').click();if(e.key==='e')$('skill').click();if(e.key==='r')$('counter').click();if(e.key==='Shift')$('dodge').click();if(e.key==='q')$('swap').click();};
+const skyDay=new THREE.Color(0x9bb8c9),skyDusk=new THREE.Color(0x283b67),skyNight=new THREE.Color(0x101b38),sky=new THREE.Color();
 const clock=new THREE.Clock();function frame(t){requestAnimationFrame(frame);let dt=Math.min(.04,clock.getDelta()),time=t*.001;crystal.rotation.y+=dt*.5;crystal.position.y=28+Math.sin(time*1.4)*.45;
   falls.rotation.z=Math.sin(time*1.8)*.012;falls.material.opacity=.66+Math.sin(time*2.4)*.08;
   templeCrystal.rotation.y+=dt*.9;templeCrystal.position.y=3.1+Math.sin(time*1.8)*.16;
-  const fm=fallsMistGeo.attributes.position;for(let i=0;i<70;i++){let y=fm.getY(i)+dt*(.25+(i%5)*.07);if(y>6)y=.25;fm.setY(i,y);}fm.needsUpdate=true;
+  const fm=fallsMistGeo.attributes.position;for(let i=0;i<36;i++){let y=fm.getY(i)+dt*(.25+(i%5)*.07);if(y>6)y=.25;fm.setY(i,y);}fm.needsUpdate=true;
   // Slow daylight-to-dusk cycle, tuned for mobile performance.
   const cycle=(Math.sin(time*.035)+1)*.5;
   sun.intensity=1.45+cycle*1.9;hemi.intensity=1.05+cycle*.95;fill.intensity=.35+cycle*.55;
-  const skyDay=new THREE.Color(0x9bb8c9),skyDusk=new THREE.Color(0x283b67),skyNight=new THREE.Color(0x101b38);
-  const dusk=1-Math.abs(cycle-.52)*1.9;const sky=skyNight.clone().lerp(skyDay,cycle).lerp(skyDusk,THREE.MathUtils.clamp(dusk,0,.48));
+  const dusk=1-Math.abs(cycle-.52)*1.9;sky.copy(skyNight).lerp(skyDay,cycle).lerp(skyDusk,THREE.MathUtils.clamp(dusk,0,.48));
   scene.background.copy(sky);scene.fog.color.copy(sky);sun.color.setHSL(.09+cycle*.04,.48,.58+cycle*.12);
   const phase=$('world-phase');if(phase)phase.textContent=cycle>.68?'SANCTUARY · DAYLIGHT':cycle>.36?'SANCTUARY · GOLDEN HOUR':'SANCTUARY · BLUE HOUR';
   fountainOrb.rotation.y+=dt*.8;fountainOrb.position.y=3.2+Math.sin(time*2.1)*.12;water.material.opacity=.68+Math.sin(time*1.7)*.1;
@@ -173,4 +174,4 @@ const clock=new THREE.Clock();function frame(t){requestAnimationFrame(frame);let
   const mp=moteGeo.attributes.position;for(let i=0;i<moteCount;i++){let y=mp.getY(i)+moteSpeeds[i]*dt;if(y>9)y=.4;mp.setY(i,y);}mp.needsUpdate=true;const h=heroes[active];heroes.forEach((g,i)=>{if(!g.visible)return;let moving=Math.hypot(move.x,move.y)>.08;g.position.y=Math.sin(time*7)*.035*(moving?1:.2);g.rotation.y=camYaw+Math.PI+(moving?Math.atan2(move.x,-move.y):0);g.userData.legs.forEach((l,j)=>l.rotation.x=moving?Math.sin(time*10+j*Math.PI)*.5:0);g.userData.arms.forEach(a=>a.rotation.x=attackT>0?-.8:0);});if(playing&&!paused){attackT=Math.max(0,attackT-dt);skillT=Math.max(0,skillT-dt);invuln=Math.max(0,invuln-dt);parryT=Math.max(0,parryT-dt);enemyTimer-=dt;if(enemyTimer<0){let e=target();if(e&&e.g.position.distanceTo(h.position)<12){parryT=.62;enemyTimer=2.8;say('⚠ هجوم قادم — اضغط صدّ الآن!');}else enemyTimer=1;}foes.forEach(e=>{if(!e.alive)return;let d=h.position.clone().sub(e.g.position);if(d.length()>2.3&&d.length()<18){d.normalize();e.g.position.addScaledVector(d,dt*(e.boss?1.25:.85));}e.g.position.y=terrainHeight(e.g.position.x,e.g.position.z);e.g.lookAt(h.position.x,0,h.position.z);if(d.length()<2.8&&invuln<=0)hp=Math.max(0,hp-(e.boss?9:5)*dt);});let f=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw)),r=new THREE.Vector3(f.z,0,-f.x),v=r.multiplyScalar(move.x).add(f.multiplyScalar(-move.y));if(v.lengthSq()>1)v.normalize();h.position.addScaledVector(v,dt*cast[active].speed);h.position.x=THREE.MathUtils.clamp(h.position.x,-82,82);h.position.z=THREE.MathUtils.clamp(h.position.z,-105,105);h.position.y=terrainHeight(h.position.x,h.position.z);
   for(const zone of discoveryZones){if(!discoveredZones.has(zone.id)&&Math.hypot(h.position.x-zone.x,h.position.z-zone.z)<zone.r){discoveredZones.add(zone.id);const count=$('explore-count'),bar=$('explore-progress');if(count)count.textContent=discoveredZones.size+' / 3 DISCOVERED';if(bar)bar.style.width=(discoveredZones.size/3*100)+'%';say(zone.name+' ✦');}}
   if(hp<=0){hp=cast[active].hp;h.position.set(0,0,4);say('استعدت توازنك');}update();if(feedT>0){feedT-=dt;if(feedT<=0)$('feed').textContent='';}}let p=h.position;let dist=13;camera.position.set(p.x+Math.sin(camYaw)*Math.cos(camPitch)*dist,p.y+6+Math.sin(camPitch)*dist,p.z+Math.cos(camYaw)*Math.cos(camPitch)*dist);camera.lookAt(p.x,1.2,p.z);renderer.render(scene,camera);}
-camera.position.set(0,9,15);frame(0);window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.35));renderer.setSize(innerWidth,innerHeight);});
+camera.position.set(0,9,15);frame(0);window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?1:1.35));renderer.setSize(innerWidth,innerHeight);});
